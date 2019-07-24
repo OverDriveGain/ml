@@ -51,27 +51,39 @@ def KovarianzUndUVonZeilenvektoren(vektor):
     matrix = calc_sig(b,u)
     return u, matrix
 
+def normalverteilung(u, m, x):
+    k = len(x)
+    print("k ist " + str(k))
+    vorne = (2*np.pi)**(-k/2)
+    mitte = np.linalg.det(m)**(-0.5)
+
+    expt1 = -0.5*(x-u).T
+    expt2 = np.linalg.pinv(m)
+    expt3 = (x-u)
+    #hinten = np.e**(np.dot(np.dot(expt1,expt2),expt3))
+    hinten = np.e ** (expt1 * expt2 * expt3)
+    return vorne*mitte*hinten
+
+
 
 def main():
     # Importiere Daten
-    #X_train,
-    # y_train = load_from_file("zip.train/zip.train")
+    X_train, y_train = load_from_file("zip.train/zip.train")
     #X_test, y_test = load_from_file("zip.test/zip.test")
     # separiere Trainingsdaten
 
-    #X_train_0 = separateData(X_train,y_train,0)
-    #X_train_1 = separateData(X_train, y_train, 1)
-    #X_train_2 = separateData(X_train, y_train, 2)
-    #X_train_3 = separateData(X_train, y_train, 3)
-    #X_train_4 = separateData(X_train, y_train, 4)
-    #X_train_5 = separateData(X_train, y_train, 5)
-    #X_train_6 = separateData(X_train, y_train, 6)
-    #X_train_7 = separateData(X_train, y_train, 7)
-    #X_train_8 = separateData(X_train, y_train, 8)
-    #X_train_9 = separateData(X_train, y_train, 9)
+    #ermittle mittelpunkte und kovarianzmatrizen
+    u = []
+    m = []
+    for i in range(10):
+        train_t = separateData(X_train,y_train,i)
+        u0, m0 = KovarianzUndUVonZeilenvektoren(train_t)
+        u.append(u0)
+        m.append(m0)
 
-    #testMitte()
-    testKovarianz()
+    #v = np.array([(5, 10, 8), (4, 6, 3), (2, 3, 3), (6, 12, 3), (8, 14, 13)])
+    #u, m = KovarianzUndUVonZeilenvektoren(v)
+    #print(normalverteilung(u, m, np.array((1, 7, 3))))
 
 def testMitte():
     v = np.array([[(1, 1)], [(3, 3)], [(3, 1)], [(1, 3)]])
@@ -105,6 +117,10 @@ def testKovarianz():
     print("Kovarianzmatrix")
     print(m)
 
+
+def detText():
+    a = np.array([(2,5,2),(3,-3,1),(1,4,-4)])
+    print(np.linalg.det(a))
 
 
 
