@@ -36,9 +36,10 @@ def calc_sig(xtrain, u):
     n = len(xtrain)
     sum = 0 #np.zeros((n,n)) # erstellt lerres array der richtigen dimension
     for xi in xtrain:
-        sum = sum + (xi-u).T * (xi-u)
+        sum = sum + np.dot((xi-u).T, (xi-u))
+        #sum = np.add(sum ,np.dot(np.subtract(xi,u).T, np.subtract(xi,u)))
 
-    return (1/n) * sum
+    return np.dot((1/n) , sum)
 
 def KovarianzUndUVonZeilenvektoren(vektor):
     b = np.array([[[vektor[0]]]])
@@ -67,6 +68,7 @@ def normalverteilung(u, m, x):
 
 
 def main():
+    '''
     # Importiere Daten
     X_train, y_train = load_from_file("zip.train/zip.train")
     #X_test, y_test = load_from_file("zip.test/zip.test")
@@ -84,11 +86,16 @@ def main():
     #v = np.array([(5, 10, 8), (4, 6, 3), (2, 3, 3), (6, 12, 3), (8, 14, 13)])
     #u, m = KovarianzUndUVonZeilenvektoren(v)
     #print(normalverteilung(u, m, np.array((1, 7, 3))))
-
+    '''
+    #testKovarianzWiki()
+    #testKovarianz()
+    testfuerpunkt()
 def testMitte():
     v = np.array([[(1, 1)], [(3, 3)], [(3, 1)], [(1, 3)]])
     ergebnis = calc_u(v)
     print(ergebnis)
+
+
 
 def testKovarianz():
     '''
@@ -117,12 +124,57 @@ def testKovarianz():
     print("Kovarianzmatrix")
     print(m)
 
+def testKovarianzWiki():
+    # https://de.wikipedia.org/wiki/Mehrdimensionale_Normalverteilung
 
-def detText():
-    a = np.array([(2,5,2),(3,-3,1),(1,4,-4)])
-    print(np.linalg.det(a))
+    v = np.array([(3.3, 24, 27), (4.9, 41, 55),(5.9, 46, 52), (5.2, 49, 54), (3.6, 29, 34),(4.2,33,51),(5.0,42,43),(5.1,35,54),(6.8,60,70),(5.0,41,50)])
+    v2 = np.array([(3.3, 24, 80)])
+    v3 = np.array([(3.3, 90, 10)])
 
 
+    u , m = KovarianzUndUVonZeilenvektoren(v)
+    print("Mittelpunkt")
+    print(u)
+    print("Kovarianzmatrix")
+    print(m)
+
+    n1 = np.log(normalverteilung(u,m,v2))
+    n2 = np.log(normalverteilung(u,m,v3))
+
+    print("n1: ")
+    print(n1)
+    print("n2: ")
+    print(n2)
+    print("n1 > n2 ?: ")
+    print(n1 > n2)
+
+def testfuerpunkt():
+    v = np.array([(1, 1), (3, 3), (3, 1), (1, 3)])
+    v2 = np.array([(10, 10), (30, 30), (30, 10), (10, 30)])
+
+    v3 = np.array([(2, 2)])
+
+    u , m = KovarianzUndUVonZeilenvektoren(v)
+    print("Mittelpunkt")
+    print(u)
+    print("Kovarianzmatrix")
+    print(m)
+
+    u2, m2 = KovarianzUndUVonZeilenvektoren(v2)
+    print("Mittelpunkt 2")
+    print(u2)
+    print("Kovarianzmatrix 2")
+    print(m2)
+
+    n1 = np.log(normalverteilung(u,m,v3))
+    n2 = np.log(normalverteilung(u2,m2,v3))
+
+    print("n1: ")
+    print(n1)
+    print("n2: ")
+    print(n2)
+    print("n1 > n2 ?: ")
+    print(n1 > n2)
 
 
 
