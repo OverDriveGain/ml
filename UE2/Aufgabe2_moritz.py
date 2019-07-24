@@ -34,11 +34,22 @@ def calc_u(xtrain):
 
 def calc_sig(xtrain, u):
     n = len(xtrain)
-    sum = 0#np.zeros((n,n)) # erstellt lerres array der richtigen dimension
+    sum = 0 #np.zeros((n,n)) # erstellt lerres array der richtigen dimension
     for xi in xtrain:
         sum = sum + (xi-u).T * (xi-u)
 
     return (1/n) * sum
+
+def KovarianzUndUVonZeilenvektoren(vektor):
+    b = np.array([[[vektor[0]]]])
+
+    for i in range(1, len(vektor)):
+        b = np.append(b, np.array([[[vektor[i]]]]), axis=1)
+    b = b[0]
+
+    u = calc_u(b)
+    matrix = calc_sig(b,u)
+    return u, matrix
 
 
 def main():
@@ -59,7 +70,7 @@ def main():
     #X_train_8 = separateData(X_train, y_train, 8)
     #X_train_9 = separateData(X_train, y_train, 9)
 
-    testMitte()
+    #testMitte()
     testKovarianz()
 
 def testMitte():
@@ -68,27 +79,36 @@ def testMitte():
     print(ergebnis)
 
 def testKovarianz():
-  #  v = np.array([[(1, 1)], [(3, 3)], [(3, 1)], [(1, 3)]])
-    #ergebnis = calc_sig(v, calc_u(v))
-   # print(ergebnis)
+    '''
+    Beispiel:
+    Matrix
+    (5, 10, 8),
+    (4, 6, 3),
+    (2, 3, 3),
+    (6, 12, 3),
+    (8, 14, 13)
 
-    #v3 = np.array([[(5, 10, 8)], [(4, 6, 3)], [(2, 3, 3)], [(6, 12, 3)], [(8, 14, 13)]])
-    #print("bspvektor")
-   # print(v2)
+    Mittelpunkt: (5,9,6)
 
-   # print("kovarianz")
-  #  u = calc_u(v2)
-  # print(u)
-   # print(calc_sig(v2,u))
+    Kovarianz:
 
-    v3 = np.array([(5, 10, 8), (4, 6, 3), (2, 3, 3), (6, 12, 3), (8, 14, 13)])
-    v4 = [[(1,2,3)]]
+    (4, 7.8, 6),
+    (7.8, 16, 11),
+    (6, 11, 16)
+    '''
 
-    for i in v3:
-        v4 = v4.append([[i]])
-    #print("daten v3")
-    #print(v3)
-    print(v4)
+    v = np.array([(5, 10, 8), (4, 6, 3),(2, 3, 3), (6, 12, 3), (8, 14, 13)])
+
+    u , m = KovarianzUndUVonZeilenvektoren(v)
+    print("Mittelpunkt")
+    print(u)
+    print("Kovarianzmatrix")
+    print(m)
+
+
+
+
+
 
 
 
