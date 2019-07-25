@@ -44,28 +44,21 @@ def KovarianzUndUVonZeilenvektoren(vektor):
     #u = calc_u(vektor)
     #matrix = calc_sig(vektor, u)
 
-    return u, regularize(matrix)
+    return u, matrix
 
 def normalverteilung(u, m, x):
     k = len(x)
-    #print("k ist " + str(k))
     vorne = (2*np.pi)**(-k/2)
     mitte = np.linalg.det(m)**(-0.5)
 
     expt1 = -0.5*(np.subtract(x,u))
-    expt2 = np.linalg.pinv(m)
+    expt2 = np.linalg.inv(m)
     expt3 = (np.subtract(x,u)).T
     hinten = np.e**(np.dot(np.dot(expt1,expt2),expt3))
-    #hinten = np.e ** (expt1 * expt2 * expt3)
     return vorne*mitte*hinten
 
-def n(u,m,x):
-    #return np.log(normalverteilung(u,m,x))
-    return normalverteilung(u,m,x)
-
 def regularize(m):
-    #e =np.linalg.eig(m)
-    a = 0.85
+    a = 0.2
     return np.add(np.dot(a, np.identity(len(m))), np.dot((1-a), m) )
 
 
@@ -74,7 +67,7 @@ def main():
     # Importiere Daten
     X_train, y_train = load_from_file("zip.train/zip.train")
     X_test, y_test = load_from_file("zip.test/zip.test")
-
+    print("Daten Importiert...")
     # separiere Trainingsdaten und
     #ermittle mittelpunkte und kovarianzmatrizen
     u = []
@@ -83,9 +76,10 @@ def main():
         train_t = separateData(X_train,y_train,i)
         u0, m0 = KovarianzUndUVonZeilenvektoren(train_t)
         u.append(u0)
-        m.append(m0)
+        m.append(regularize(m0)) # regularize all, da in jeder matrix beim postcode notwendig
 
-    # erstelle leere konsusionsmatrix
+    print("Mittelpunkte und Kovarianzmatrizen bestimmt...")
+    # erstelle leere konfusionsmatrix
     gefunden = np.array([(0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
                          (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
                          (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
@@ -107,7 +101,7 @@ def main():
         gefundenesLabel = -1
         maxWkt = 0
         for j in range(10):
-            wkt = n(u[j],m[j],x)[0][0]
+            wkt = normalverteilung(u[j],m[j],x)[0][0]
             if wkt > maxWkt:
                 maxWkt = wkt
                 gefundenesLabel = j
