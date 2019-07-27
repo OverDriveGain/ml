@@ -11,7 +11,8 @@ class LinearRegression:
         self.classes = [[]for i in range(0,10)]
         self.eigenWerts = [np.array([])]* 10
         self.eigenVectors = [np.array([])]* 10
-        self.mues = [np.array([])]* 10
+
+
     def train(self, xTrain, yTrain, dim):
         # Klassen ordnen
         for index in range(0, len(xTrain)):
@@ -19,26 +20,26 @@ class LinearRegression:
 
         self.classes = np.array(self.classes)
         # Berechne m fuer die Klassen
+        mues = [np.array([])]* 10
         for index in range(len(self.classes)):
             if(len(self.classes[index]) == 0): continue
             for vector in self.classes[index]:
-                if(len(self.mues[index]) == 0): self.mues[index] = np.array(vector.copy())     ##Reference by value error!
-                else: self.mues[index] += vector
-            self.mues[index] = self.mues[index] / len(self.classes[index])
+                if(len(mues[index]) == 0): mues[index] = np.array(vector.copy())     ##Reference by value error!
+                else: mues[index] += vector
+            mues[index] = mues[index] / len(self.classes[index])
 
-        sigmas = []
         for index in range(0, len(self.classes)):
             if(len(self.classes[index]) == 0): continue
             sigma = []
             for num, vector in enumerate(self.classes[index]):
-                sub = vector - self.mues[index]
+                sub = vector - mues[index]
                 if(sigma ==[]):
-                    sigma = np.subtract(vector, self.mues[index]) * np.subtract(vector, self.mues[index])[np.newaxis].T
+                    sigma = np.subtract(vector, mues[index]) * np.subtract(vector, mues[index])[np.newaxis].T
                 else:
-                    sigma += np.subtract(vector, self.mues[index]) * np.subtract(vector, self.mues[index])[np.newaxis].T
+                    sigma += np.subtract(vector, mues[index]) * np.subtract(vector, mues[index])[np.newaxis].T
             sigma = sigma / len(self.classes[index])
             w, v = LA.eig(sigma)
-            sortedIndices = np.argsort(w)
+            sortedIndices = np.argsort(w)[::-1]
             v = v[sortedIndices]
             w = w[sortedIndices]
             v = np.array(v)[:dim, :dim]

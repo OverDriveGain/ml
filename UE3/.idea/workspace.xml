@@ -10,7 +10,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fa07b406-cc12-46bd-bb45-a16f867b9fe5" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/../UE2/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../UE2/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../UE2/.idea/UE2.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../UE2/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../UE2/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../UE2/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Aufgabe3_manar.py" beforeDir="false" afterPath="$PROJECT_DIR$/Aufgabe3_manar.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -24,12 +28,23 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/new.py">
+        <entry file="file://$PROJECT_DIR$/Aufgabe3_manar.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="628">
-              <caret line="55" selection-start-line="55" selection-end-line="55" />
+            <state relative-caret-position="402">
+              <caret line="41" column="47" selection-start-line="41" selection-start-column="47" selection-end-line="41" selection-end-column="47" />
               <folding>
-                <element signature="e#0#10#0" expanded="true" />
+                <element signature="e#0#17#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Aufgabe3_moritz.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state>
+              <folding>
+                <element signature="e#0#19#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -40,6 +55,7 @@
   <component name="FindInProjectRecents">
     <findStrings>
       <find>print</find>
+      <find>self.mues</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -49,6 +65,7 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/new.py" />
+        <option value="$PROJECT_DIR$/Aufgabe3_manar.py" />
       </list>
     </option>
   </component>
@@ -89,6 +106,7 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
@@ -117,12 +135,12 @@
       <option name="presentableId" value="Default" />
       <updated>1564136647025</updated>
       <workItem from="1564136648827" duration="5111000" />
-      <workItem from="1564234739395" duration="6086000" />
+      <workItem from="1564234739395" duration="6541000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="11197000" />
+    <option name="totallyTimeSpent" value="11652000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="-1" width="1920" height="1040" extended-state="6" />
@@ -154,10 +172,29 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/new.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="628">
-          <caret line="55" selection-start-line="55" selection-end-line="55" />
+        <state relative-caret-position="688">
+          <caret line="59" column="128" lean-forward="true" selection-start-line="59" selection-start-column="128" selection-end-line="59" selection-end-column="128" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Aufgabe3_moritz.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <folding>
+            <element signature="e#0#19#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Aufgabe3_manar.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="402">
+          <caret line="41" column="47" selection-start-line="41" selection-start-column="47" selection-end-line="41" selection-end-column="47" />
+          <folding>
+            <element signature="e#0#17#0" expanded="true" />
           </folding>
         </state>
       </provider>
