@@ -11,7 +11,8 @@ class LinearRegression:
         self.classes = [[]for i in range(0,10)]
         self.eigenWerts = [np.array([])]* 10
         self.eigenVectors = [np.array([])]* 10
-
+        self.plt = plt
+        self.color = [0.2, 0.2, 0.2]
 
     def train(self, xTrain, yTrain, dim):
         # Klassen ordnen
@@ -49,12 +50,16 @@ class LinearRegression:
     def plot2D(self, firstIndex, secondIndex):
         cov1 = np.dot(np.diag(self.eigenWerts[firstIndex]),np.dot(self.eigenVectors[firstIndex],self.eigenWerts[firstIndex][np.newaxis].T))
         cov2 = np.dot(np.diag(self.eigenWerts[secondIndex]),np.dot(self.eigenVectors[secondIndex],self.eigenWerts[secondIndex][np.newaxis].T))
-        print(cov1)
-        print(cov2)
-        plt.plot(cov1[0][0], cov1[1][0], 'ro')
-        plt.plot(cov2[0][0], cov2[1][0], 'ro')
-        plt.axis([ min(cov1[0][0], cov2[0][0]) -5, max(cov1[0][0], cov2[0][0])+5, min(cov1[1][0], cov2[1][0])-5, max(cov1[1][0], cov2[1][0])+5])
-        plt.show()
+#        h = figure(‘Color’, [0.2 0.2 0.2])
+        self.plt.plot(cov1[0][0], cov1[1][0], color=self.color,  marker='o')
+        self.plt.plot(cov2[0][0], cov2[1][0], color=self.color,  marker='o')
+        for i in range(0, 3): self.color[i]+=0.1
+        if self.color[i] > 1 : self.color = [0.2,0.2,0.2]
+        print(self.color)
+#        self.plt.axis([ min(cov1[0][0], cov2[0][0]) -5, max(cov1[0][0], cov2[0][0])+5, min(cov1[1][0], cov2[1][0])-5, max(cov1[1][0], cov2[1][0])+5])
+
+    def showPlot(self):
+        self.plt.show()
 
 def loadFromFile(path):
     df = pd.read_csv(path, header=None, sep=" ")
@@ -66,4 +71,8 @@ xTrain, yTrain = loadFromFile("zip.train/zip.train")
 
 LR = LinearRegression()
 LR.train(xTrain, yTrain, 2)
-LR.plot2D(0,2)
+for i in range (0, 10):
+    for u in range (i, 10):
+        LR.plot2D(i,u)
+
+LR.showPlot()
