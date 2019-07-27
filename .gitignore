@@ -15,6 +15,7 @@ doc/doxygen/*.tmp
 *~
 *.xml
 *.iml
+*.zip
 *.orig
 .*.swp
 cachegrind.out*
