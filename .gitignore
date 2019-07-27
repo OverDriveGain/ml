@@ -11,6 +11,7 @@ doc/doxygen/*.tmp
 *bin
 # Build directory
 /build
+/UE3/lfwcrop_grey
 # Backup files
 *~
 *.xml

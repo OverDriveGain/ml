@@ -1,5 +1,42 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import os, glob
+from matplotlib.image import imread
+
+def faces_Example():
+    X = []
+    h = w = 0
+    max_num_images = np.inf
+    path = "lfwcrop_grey/faces"
+
+    for i, filepath in enumerate(glob.glob(os.path.join(path, "*.pgm"))):
+        img = imread(filepath)
+        X.append(img.flatten())
+
+        if i >= max_num_images:
+           break
+
+    h, w = img.shape
+    X = np.array(X)
+    print("image heigth: {}  image width: {}".format(h, w))
+    print(X.shape)
+
+    num_samples = 90
+    indices = np.random.choice(range(len(X)), num_samples)
+    sample_faces = X[indices]
+
+    fig = plt.figure(figsize=(20, 6))
+
+    for i in range(num_samples):
+        ax = plt.subplot(6, 15, i + 1)
+        img = sample_faces[i].reshape((64, 64))
+        plt.imshow(img, cmap='gray')
+        plt.axis('off')
+
+
+
+
 
 #Aufgabe 2
 # abgabe von Moritz Walter und Manar Zaboub
@@ -23,30 +60,23 @@ def calc_u(xtrain):
 
     return np.dot((1/n) , sum)
 
-def calc_sig(xtrain, u):
-    n = len(xtrain)
-    sum = 0
-    for xi in xtrain:
-        sum = np.add(sum ,np.dot(np.subtract(xi,u).T, np.subtract(xi,u)))
+def covariance_matrix_loop(X, mu):
+    rows, cols = X.shape
+    cov = np.zeros((cols, cols))
+    for x in X:
+      cov += np.outer(x-mu, x-mu)
+    return cov / rows
 
-    return np.dot((1/n) , sum)
-
-def KovarianzUndUVonZeilenvektoren(vektor):
-    b = np.array([[[vektor[0]]]])
-
-    for i in range(1, len(vektor)):
-        b = np.append(b, np.array([[[vektor[i]]]]), axis=1)
-    b = b[0]
-
-    u = calc_u(b)
-    matrix = calc_sig(b,u)
-
-    #u = calc_u(vektor)
-    #matrix = calc_sig(vektor, u)
-
-    return u, matrix
+def regularize_covariance_matrix(cov, alpha_min):
+    alpha = alpha_min
+    cov_reg = np.eye(len(cov)) * alpha + (1 - alpha) * cov
+    while np.linalg.det(cov_reg) == 0.0:
+      alpha += 0.01
+      cov_reg = np.eye(len(cov)) * alpha + (1 - alpha) * cov
+    return cov_reg
 
 def normalverteilung(u, m, x):
+    x = x
     k = len(x)
     vorne = (2*np.pi)**(-k/2)
     mitte = np.linalg.det(m)**(-0.5)
@@ -57,9 +87,7 @@ def normalverteilung(u, m, x):
     hinten = np.e**(np.dot(np.dot(expt1,expt2),expt3))
     return vorne*mitte*hinten
 
-def regularize(m):
-    a = 0.2
-    return np.add(np.dot(a, np.identity(len(m))), np.dot((1-a), m) )
+
 
 def normalize_rows(x: np.ndarray):
     """
@@ -85,7 +113,7 @@ def reduceDimensions(m, dim):
 
 
     #print(eigenValuesSort)
-    umatrix =  normalize_rows(eigenVectorsSort)
+    umatrix =  normalize_rows(eigenVectorsSort)[:,:dim]
 
     eigenwertmatrix = np.diag(eigenValuesSort)
     print(eigenwertmatrix)
@@ -96,7 +124,8 @@ def reduceDimensions(m, dim):
     #print("m ")
     #print(m)
     #print("berechnung")
-    print(np.dot(np.dot(umatrix, eigenwertmatrix), umatrix.T))
+    print(np.dot(np.dot(umatrix.T, eigenwertmatrix),np.array([(5,10,8)])))
+    #print(np.dot(np.dot(umatrix.T, eigenwertmatrix), umatrix))
     #print(eigenVectorsSort)
     return umatrix, eigenwertmatrix
 
@@ -105,8 +134,9 @@ def reduceDimensions(m, dim):
 def test():
     v = np.array([(5,10,8),(4,6,3),(2,3,3),(6,12,3),(8,14,13)])
 
-    u,m = KovarianzUndUVonZeilenvektoren(v)
-
+    u = calc_u(v)
+    m0 = covariance_matrix_loop(v, u)
+    m = regularize_covariance_matrix(m0, 0.01)
     umatrix ,neum = reduceDimensions(m, 2)
 
 
@@ -114,22 +144,24 @@ def test():
 def main():
     test()
     # Importiere Daten
-   # X_train, y_train = load_from_file("zip.train/zip.train")
-   # X_test, y_test = load_from_file("zip.test/zip.test")
-   # print("Daten Importiert...")
+    #faces_Example()
+
+
+def aufgabe2maincode():
+    X_train, y_train = load_from_file("zip.train/zip.train")
+    X_test, y_test = load_from_file("zip.test/zip.test")
+    print("Daten Importiert...")
     # separiere Trainingsdaten und
-    #ermittle mittelpunkte und kovarianzmatrizen
-   # u = []
-   # m = []
-   # for i in range(1):
-   #     train_t = separateData(X_train,y_train,i)
-   #     u0, m0 = KovarianzUndUVonZeilenvektoren(train_t)
-   #     u.append(u0)
-   #     m.append(regularize(m0)) # regularize all, da in jeder matrix beim postcode notwendig
+    # ermittle mittelpunkte und kovarianzmatrizen
+    u = []
+    m = []
+    for i in range(10):
+        train_t = separateData(X_train, y_train, i)
+        u0 = calc_u(train_t)
+        m0 = covariance_matrix_loop(train_t, u0)
+        u.append(u0)
+        m.append(regularize_covariance_matrix(m0, 0.01))  # regularize all, da in jeder matrix beim postcode notwendig
 
-
-
-    '''
     print("Mittelpunkte und Kovarianzmatrizen bestimmt...")
     # erstelle leere konfusionsmatrix
     gefunden = np.array([(0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
@@ -153,11 +185,10 @@ def main():
         gefundenesLabel = -1
         maxWkt = 0
         for j in range(10):
-            wkt = normalverteilung(u[j],m[j],x)[0][0]
+            wkt = normalverteilung(u[j], m[j], x)  # log_normal_distribution_pdf(x,m[j],u[j])
             if wkt > maxWkt:
                 maxWkt = wkt
                 gefundenesLabel = j
-
 
         # Eintragen in Konfusionsmatrix
         gefunden[1 + testlabel, 1 + gefundenesLabel] = gefunden[1 + testlabel, 1 + gefundenesLabel] + 1
@@ -166,9 +197,9 @@ def main():
         if i % 200 == 0:
             print("Aktueller Status: " + str(i / len(X_test) * 100) + "% fertig")
 
-    #ausgabe Konfusionsmatrix
+    # ausgabe Konfusionsmatrix
     print(gefunden)
-    '''
+
 
 
 
