@@ -4,213 +4,35 @@ import matplotlib.pyplot as plt
 import os, glob
 from matplotlib.image import imread
 
-def pca(X, num_components =0):
-    [n,d] = X.shape
-    if (num_components  <= 0) or (num_components >n):
-        num_components = n
-    mu = X.mean(axis =0)
-    X = X - mu
-    if n>d:
-        C = np.dot(X.T,X)
-        [eigenvalues ,eigenvectors] = np.linalg.eigh(C)
-    else:
-        C = np.dot(X,X.T)
-        [eigenvalues ,eigenvectors] = np.linalg.eigh(C)
-        eigenvectors = np.dot(X.T,eigenvectors)
-        for i in range(n):
-            eigenvectors [:,i] = eigenvectors [:,i]/np.linalg.norm(eigenvectors [:,i])
-        # or  simply  perform  an  economy  size  decomposition
-        # eigenvectors , eigenvalues , variance = np.linalg.svd(X.T, full_matrices=False)
-        # sort  eigenvectors  descending  by  their  eigenvalue
-    idx = np.argsort(-eigenvalues)
-    eigenvalues = eigenvalues[idx]
-    eigenvectors = eigenvectors [:,idx]
-        # select  only  num_components
-    eigenvalues = eigenvalues [0: num_components ].copy()
-    eigenvectors = eigenvectors [:,0: num_components ].copy()
-    return [eigenvalues , eigenvectors , mu]
-
-def faces_Example():
-    X = []
-    h = w = 0
-    max_num_images = np.inf
-    path = "lfwcrop_grey/faces"
-
-    for i, filepath in enumerate(glob.glob(os.path.join(path, "*.pgm"))):
-        img = imread(filepath)
-        X.append(img.flatten())
-
-        if i >= max_num_images:
-           break
-
-    h, w = img.shape
-    X = np.array(X)
-    print("image heigth: {}  image width: {}".format(h, w))
-    print(X.shape)
-
-    num_samples = 90
-    indices = np.random.choice(range(len(X)), num_samples)
-    sample_faces = X[indices]
-
-    fig = plt.figure(figsize=(20, 6))
-
-    for i in range(num_samples):
-        ax = plt.subplot(6, 15, i + 1)
-        img = sample_faces[i].reshape((64, 64))
-        plt.imshow(img, cmap='gray')
-        plt.axis('off')
-
-    plt.show()
-    print("finished")
-
-
-
-
-
-#Aufgabe 2
+# Aufgabe 3
 # abgabe von Moritz Walter und Manar Zaboub
 
+
 def load_from_file(path):
-    #importfunktion für daten. Übernommen aus Tutoriumsvorlage
+    # importfunktion für daten. Übernommen aus Tutoriumsvorlage
     df = pd.read_csv(path, header=None, sep=" ")
-    X = df.iloc[:, 1:257].values # there is an empty string at position 257, because every line ends with a space (== separator)
+    X = df.iloc[:, 1:257].values
+    # there is an empty string at position 257, because every line ends with a space (== separator)
     y = df.iloc[:, 0].values
     return X, y
+
+
 def separateData(X, y, digit):
     X_digit = X[y == digit]
     return X_digit
 
-def calc_u(xtrain):
-    n = len(xtrain)
-    sum = 0
-    for i in xtrain:
-        sum = np.add(sum , i)
-
-    return np.dot((1/n) , sum)
-def covariance_matrix_loop(X, mu):
-    rows, cols = X.shape
-    cov = np.zeros((cols, cols))
-    for x in X:
-      cov += np.outer(x-mu, x-mu)
-    return cov / rows
-
-def covariance_matrix_loop_with_Status(X, mu):
-    rows, cols = X.shape
-    cov = np.zeros((cols, cols))
-    i = 0
-    for x in X:
-        cov += np.outer(x-mu, x-mu)
-        i = i + 1
-        if i % 200 == 0:
-            print("aktueller Standt Matrix " + str(i/rows * 100) +" %")
-    return cov / rows
-
-
-def regularize_covariance_matrix(cov, alpha_min):
-    alpha = alpha_min
-    cov_reg = np.eye(len(cov)) * alpha + (1 - alpha) * cov
-    while np.linalg.det(cov_reg) == 0.0:
-      alpha += 0.01
-      cov_reg = np.eye(len(cov)) * alpha + (1 - alpha) * cov
-    return cov_reg
-def normalverteilung(u, m, x):
-    x = x
-    k = len(x)
-    vorne = (2*np.pi)**(-k/2)
-    mitte = np.linalg.det(m)**(-0.5)
-
-    expt1 = -0.5*(np.subtract(x,u))
-    expt2 = np.linalg.inv(m)
-    expt3 = (np.subtract(x,u)).T
-    hinten = np.e**(np.dot(np.dot(expt1,expt2),expt3))
-    return vorne*mitte*hinten
-def normalize_rows(x: np.ndarray):
-    """
-    von https://necromuralist.github.io/neural_networks/posts/normalizing-with-numpy/
-    function that normalizes each row of the matrix x to have unit length.
-
-    Args:
-     ``x``: A numpy matrix of shape (n, m)
-
-    Returns:
-     ``x``: The normalized (by row) numpy matrix.
-    """
-    return x/np.linalg.norm(x, ord=2, axis=1, keepdims=True)
-'''
-def reduceDimensions(m, dim):
-    v = np.linalg.eigh(m)
-    eigenwerte = v[0]#np.sort(v[0])[::-1]
-    eigenvektoren = v[1]
-
-    idx = eigenwerte.argsort()[::-1]
-    eigenValuesSort = eigenwerte[idx]
-    eigenVectorsSort = eigenvektoren[:, idx]
-
-
-    #print(eigenValuesSort)
-    umatrix =  normalize_rows(eigenVectorsSort)[:,:dim]
-
-    eigenwertmatrix = np.diag(eigenValuesSort)
-    print(eigenwertmatrix)
-    for i in range(dim, len(eigenwertmatrix[0])):
-        eigenwertmatrix[i][i] = 0
-
-    print(eigenwertmatrix)
-    #print("m ")
-    #print(m)
-    #print("berechnung")
-    print(np.dot(np.dot(umatrix.T, eigenwertmatrix),np.array([(5,10,8)])))
-    #print(np.dot(np.dot(umatrix.T, eigenwertmatrix), umatrix))
-    #print(eigenVectorsSort)
-    return umatrix, eigenwertmatrix
-'''
-def reduce_dimensions(data, dim, u, m):
-    #print("data")
-    v = data
-    vreduced = np.subtract(v,u)
-    #mreg = regularize_covariance_matrix(m, 0.01)
-    v = np.linalg.eigh(m)
-    eigenwerte = v[0]
-    eigenvektoren = v[1]
-    idx = eigenwerte.argsort()[::-1]
-    #eigenValuesSort = eigenwerte[idx]
-    eigenVectorsSort = eigenvektoren[:, idx]
-    tossed = eigenVectorsSort[:,:dim]
-    newdata = np.dot(tossed.T, vreduced.T).T
-    return newdata
-
-
-def getEigenface(face,dim, u, m):
-    v = face
-    vreduced = np.subtract(v, u)
-    v = np.linalg.eigh(m)
-    eigenwerte = v[0]  # np.sort(v[0])[::-1]
-    eigenvektoren = v[1]
-    idx = eigenwerte.argsort()[::-1]
-   # eigenValuesSort = eigenwerte[idx]
-    eigenVectorsSort = eigenvektoren[:, idx]
-    tossed = eigenVectorsSort[:, :dim]
-    newdata = np.dot(tossed.T, vreduced.T).T
-    return eigenVectorsSort#newdata
 
 def Aufgabe1():
     X_train, y_train = load_from_file("zip.train/zip.train")
     X_test, y_test = load_from_file("zip.test/zip.test")
 
-    u = calc_u(X_train)
-    m = covariance_matrix_loop(X_train, u)
 
-    #X_redu = reduce_dimensions(X_train,2,u,m)
-    #X_test_redu = reduce_dimensions(X_test,2,u,m)
-
-    X_redu_v, X_redu_u = faces(X_train, 2)
-    X_test_v, X_test_u = faces(X_test, 2)
+    X_redu_v, X_redu_u = dimensionsreduktion(X_train, 2)
+    X_test_v, X_test_u = dimensionsreduktion(X_test, 2)
 
 
     X_redu = project(X_redu_v,X_redu_u,X_train)
     X_test_redu = project(X_test_v,X_test_u,X_test)
-
-    print(X_redu)
 
     points = []
 
@@ -237,6 +59,7 @@ def Aufgabe1():
 
     plt.tight_layout()
     plt.show()
+
 
 def Aufgabe1Part2(Klasse1,Klasse2,Punkte,Testdata,TestLabels):
     print("Linear Regression for " + "("+ str(Klasse1) + ","+ str(Klasse2)+")")
@@ -276,7 +99,6 @@ def Aufgabe1Part2(Klasse1,Klasse2,Punkte,Testdata,TestLabels):
     print("Fehlerquote: " + str(fehler / richtig * 100) + " %")
 
 
-
 def calc_linear_regression_2D(dataK1, dataK2):
     # Klasse 1 wird mit 1 gelabeld, Klasse 2 mit -1
     a = np.full((1, len(dataK1)), 1)
@@ -288,220 +110,89 @@ def calc_linear_regression_2D(dataK1, dataK2):
     b = np.dot(np.dot(np.linalg.inv(np.dot(X.T, X)),X.T),y.T)
     return b.T
 
+
 def klassify_newPoint_regression(datapoint, b):
     # Nahe 1 für Klasse 1, Nache -1 für Klasse 2
-    return (sum(np.multiply(b,np.insert(datapoint,0,1,axis = 1))[0]))
+    return sum(np.multiply(b,np.insert(datapoint, 0, 1, axis=1))[0])
 
 
-def faces(bilder, dimensionen):
+def dimensionsreduktion(bilder, dimensionen):
     # berechne durchschnittsgesicht
     mu = bilder.mean(axis=0)
 
     # ziehe durchschnitt ab
     bilder_durch = bilder - mu
-    #print(bilder_durch)
 
     [n, d] = bilder.shape
 
-    if n>d:
-        C = np.dot(bilder_durch.T,bilder_durch)
-        v = np.linalg.eigh(C)
+    if n > d:
+        c = np.dot(bilder_durch.T,bilder_durch)
+        v = np.linalg.eigh(c)
         eigenwerte = v[0]  # np.sort(v[0])[::-1]
         eigenvektoren = v[1]
     else:
-        C = np.dot(bilder_durch, bilder_durch.T)
-        v = np.linalg.eigh(C)
+        c = np.dot(bilder_durch, bilder_durch.T)
+        v = np.linalg.eigh(c)
         eigenwerte = v[0]  # np.sort(v[0])[::-1]
         eigenvektoren = np.dot(bilder_durch.T,v[1])
 
-    # normiere eigenvektoren
+        # normiere eigenvektoren
         for i in range(n):
             eigenvektoren[:, i] = eigenvektoren[:, i] / np.linalg.norm(eigenvektoren[:, i])
 
     # sortieren
     idx = eigenwerte.argsort()[::-1]
-    eigenValuesSort = eigenwerte[idx]
-    eigenVectorsSort = eigenvektoren[:, idx]
+    # eigenValuesSort = eigenwerte[idx]
+    eigen_vectors_sort = eigenvektoren[:, idx]
 
     # übrige dimensionen entfernen
-    tossed = eigenVectorsSort[:, :dimensionen]
+    tossed = eigen_vectors_sort[:, :dimensionen]
 
     return tossed , mu
 
 
-def test2():
-    v1 = np.array([(1, 10), (2, 10), (1, 9), (2, 9)])
-    v2 = np.array([(6, 2), (6, 1), (7, 2), (7, 1)])
-    v3 = np.array([(1, 10,2, 10,1, 9), (2, 9,6, 2,6, 1)])
-    faces(v3)
-
-    #b = calc_linear_regression_2D(v1, v2)
-    #p1 = np.array([(1.5, 9.5)])
-    #p2 = np.array([(6.5, 1.5)])
-
-    #print(klassify_newPoint_regression(p1, b))  # -> sollte nahe 1 sein
-    #print(klassify_newPoint_regression(p2, b))  # -> sollte nahe -1 sein
-   # [D, W, mu] = pca()
-
-def faces_Aufgabe():
-    X = []
+def aufgabe2():
+    x = []
     h = w = 0
-    max_num_images = 200#np.inf
+    max_num_images = 200  # np.inf
     path = "lfwcrop_grey/faces"
 
     for i, filepath in enumerate(glob.glob(os.path.join(path, "*.pgm"))):
         img = imread(filepath)
-        X.append(img.flatten())
-
+        x.append(img.flatten())
         if i >= max_num_images:
-           break
+            break
 
     h, w = img.shape
-    X = np.array(X)
-    print("image heigth: {}  image width: {}".format(h, w))
-    print(X.shape)
-    #u = calc_u(X)
-    #print("u calculated")
-    #m = covariance_matrix_loop_with_Status(X,u)
-    #print("covariance calculated")
-    #subtract u from each face
-
-    #[D, W, mu] = pca(X)
-
-
+    x = np.array(x)
+    # print("image heigth: {}  image width: {}".format(h, w))
+    # print(X.shape)
 
     num_samples = 90
-    indices = np.random.choice(range(len(X)), num_samples)
-    #sample_faces = faces(X[indices])
+    indices = np.random.choice(range(len(x)), num_samples)
 
-    #sample_faces = pca(X[indices], 4096)[1]
-    sample_faces, q = faces(X[indices], 4096)
+    sample_faces, q = dimensionsreduktion(x[indices], 4096)
     sample_faces = sample_faces.T
 
-    print(sample_faces)
     fig = plt.figure(figsize=(20, 6))
     for i in range(num_samples):
         ax = plt.subplot(6, 15, i + 1)
         img = sample_faces[i].reshape((64, 64))
         plt.imshow(img, cmap='gray')
         plt.axis('off')
-    '''
-    for i in range(num_samples):
-        ax = plt.subplot(6, 15, i + 1)
-        img = project(W[i],X[i],mu[i]).reshape((64, 64))
-        plt.imshow(img, cmap='gray')
-        plt.axis('off')
-
-    
-    for i in range(num_samples):
-        ax = plt.subplot(6, 15, i + 1)
-        if i % 2 == 1:
-            img = getEigenface(sample_faces[i-1],64,u,m).reshape((64, 64))
-        else:
-            img = sample_faces[i-1].reshape(64, 64)#reduce_dimensions(sample_faces[i],4096,u,m).reshape((64, 64))
-        plt.imshow(img, cmap='gray')
-        plt.axis('off')
-    '''
     plt.show()
-    print("finished")
 
-def recenter(image, min_rows, min_cols):
-    r, c = image.shape
-    top, bot, left, right = 0, r, 0, c
-    if r > min_rows:
-        top = r - min_rows
-    if c > min_cols:
-        right = min_cols
-    return image[top:bot, left:right]
+
+def project(vectors, data, mu=None):
+    if mu is None:
+        return np.dot(data, vectors)
+    return np.dot(data - mu, vectors)
+
 
 def main():
-    #linregTest()
-    #print("test2")
-    #test2()
     Aufgabe1()
-    #test2
-    faces_Aufgabe()
-    # Importiere Daten
-    #faces_Example()
-
-
-def aufgabe2maincode():
-    X_train, y_train = load_from_file("zip.train/zip.train")
-    X_test, y_test = load_from_file("zip.test/zip.test")
-    print("Daten Importiert...")
-    # separiere Trainingsdaten und
-    # ermittle mittelpunkte und kovarianzmatrizen
-    u = []
-    m = []
-    for i in range(10):
-        train_t = separateData(X_train, y_train, i)
-        u0 = calc_u(train_t)
-        m0 = covariance_matrix_loop(train_t, u0)
-        u.append(u0)
-        m.append(regularize_covariance_matrix(m0, 0.01))  # regularize all, da in jeder matrix beim postcode notwendig
-
-    print("Mittelpunkte und Kovarianzmatrizen bestimmt...")
-    # erstelle leere konfusionsmatrix
-    gefunden = np.array([(0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
-                         (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-                         (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-                         (2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-                         (3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-                         (4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-                         (5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-                         (6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-                         (7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-                         (8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-                         (9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)])
-
-    for i in range(len(X_test)):
-        # erstelle temp variablen
-        x = X_test[i]  # aktuelles testbild
-        testlabel = int(y_test[i])  # sollLabel für testbild
-
-        # finde Label
-        gefundenesLabel = -1
-        maxWkt = 0
-        for j in range(10):
-            wkt = normalverteilung(u[j], m[j], x)  # log_normal_distribution_pdf(x,m[j],u[j])
-            if wkt > maxWkt:
-                maxWkt = wkt
-                gefundenesLabel = j
-
-        # Eintragen in Konfusionsmatrix
-        gefunden[1 + testlabel, 1 + gefundenesLabel] = gefunden[1 + testlabel, 1 + gefundenesLabel] + 1
-
-        # Fortschrittsausgabe
-        if i % 200 == 0:
-            print("Aktueller Status: " + str(i / len(X_test) * 100) + "% fertig")
-
-    # ausgabe Konfusionsmatrix
-    print(gefunden)
-
-
-def  project(Vektors, Data, mu=None):
-    if mu is None:
-        return  np.dot(Data,Vektors)
-    return  np.dot(Data - mu, Vektors)
-
-
-
-
-
-
-
-def linregTest():
-    v1 = np.array([(1,10),(2,10),(1,9),(2,9)])
-    v2 = np.array([(6, 2), (6, 1), (7, 2), (7, 1)])
-
-    b = calc_linear_regression_2D(v1,v2)
-    p1 = np.array([(1.5, 9.5)])
-    p2 = np.array([(6.5, 1.5)])
-
-    print(klassify_newPoint_regression(p1,b))# -> sollte nahe 1 sein
-    print(klassify_newPoint_regression(p2, b))# -> sollte nahe -1 sein
+    aufgabe2()
 
 
 if __name__ == "__main__":
     main()
-
