@@ -3,6 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os, glob
 from matplotlib.image import imread
+import matplotlib
+
+matplotlib.use('WebAgg')
 
 def faces_Example():
     X = []
