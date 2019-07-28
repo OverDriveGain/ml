@@ -3,9 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os, glob
 from matplotlib.image import imread
-import matplotlib
-
-matplotlib.use('WebAgg')
 
 def pca(X, num_components =0):
     [n,d] = X.shape
