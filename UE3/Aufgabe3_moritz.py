@@ -1,8 +1,10 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import os, glob
+import os
+import glob
 from matplotlib.image import imread
+
 
 # Aufgabe 3
 # abgabe von Moritz Walter und Manar Zaboub
@@ -11,109 +13,110 @@ from matplotlib.image import imread
 def load_from_file(path):
     # importfunktion für daten. Übernommen aus Tutoriumsvorlage
     df = pd.read_csv(path, header=None, sep=" ")
-    X = df.iloc[:, 1:257].values
+    x = df.iloc[:, 1:257].values
     # there is an empty string at position 257, because every line ends with a space (== separator)
     y = df.iloc[:, 0].values
-    return X, y
+    return x, y
 
 
-def separateData(X, y, digit):
-    X_digit = X[y == digit]
-    return X_digit
+def separate_data(x, y, digit):
+    x_digit = x[y == digit]
+    return x_digit
 
 
-def Aufgabe1():
-    X_train, y_train = load_from_file("zip.train/zip.train")
-    X_test, y_test = load_from_file("zip.test/zip.test")
+def project_data(vectors, data, mu):
+    return np.dot(data - mu, vectors)
 
 
-    X_redu_v, X_redu_u = dimensionsreduktion(X_train, 2)
-    X_test_v, X_test_u = dimensionsreduktion(X_test, 2)
+def aufgabe1():
+    x_train, y_train = load_from_file("zip.train/zip.train")
+    x_test, y_test = load_from_file("zip.test/zip.test")
 
+    x_redu_v, x_redu_u = dimensionsreduktion(x_train, 2)
+    x_test_v, x_test_u = dimensionsreduktion(x_test, 2)
 
-    X_redu = project(X_redu_v,X_redu_u,X_train)
-    X_test_redu = project(X_test_v,X_test_u,X_test)
+    x_redu = project_data(x_redu_v, x_redu_u, x_train)
+    x_test_redu = project_data(x_test_v, x_test_u, x_test)
 
     points = []
 
     for i in range(10):
-        points.append(separateData(X_redu,y_train,i))
+        points.append(separate_data(x_redu, y_train, i))
 
-    fig, axs = plt.subplots(9, 9, figsize=(18, 9),sharex=True,sharey=True )
-    #fig.suptitle("linke Zahl Blau, rechte Zahl orange", y=1.05)
-    #fig.tight_layout(rect=[0, 0.10, 1, 0.80])
+    fig, axs = plt.subplots(9, 9, figsize=(18, 9), sharex=True, sharey=True)
+    # fig.suptitle("linke Zahl Blau, rechte Zahl orange", y=1.05)
+    # fig.tight_layout(rect=[0, 0.10, 1, 0.80])
     for i in range(9):
         for j in range(10):
             if j > i:
-                iP = points[i]
-                jP = points[j]
-                axs[i, j-1].scatter(iP[:, 0], iP[:, 1], s=1)
-                axs[i, j-1].scatter(jP[:, 0], jP[:, 1], s=1)
-                axs[i, j-1].set_title("("+ str(i) + ","+ str(j)+")")
-                Aufgabe1Part2(i,j,points,X_test_redu,y_test,)
+                i_p = points[i]
+                j_p = points[j]
+                axs[i, j - 1].scatter(i_p[:, 0], i_p[:, 1], s=1)
+                axs[i, j - 1].scatter(j_p[:, 0], j_p[:, 1], s=1)
+                axs[i, j - 1].set_title("(" + str(i) + "," + str(j) + ")")
+                aufgabe1_part2(i, j, points, x_test_redu, y_test, )
             else:
                 if j > 0:
-                    axs[i, j-1].axis('off')
-                #if i==7 and j == 4:
-                    #axs[i, j-1].set_title("linke Zahl Blau, rechte Zahl orange")
+                    axs[i, j - 1].axis('off')
 
+    axs[3, 1].set_title("(blau,orange)")
     plt.tight_layout()
-    plt.show()
 
 
-def Aufgabe1Part2(Klasse1,Klasse2,Punkte,Testdata,TestLabels):
-    print("Linear Regression for " + "("+ str(Klasse1) + ","+ str(Klasse2)+")")
+def aufgabe1_part2(klasse1, klasse2, punkte, testdata, test_labels):
+    print("Linear Regression für " + "(" + str(klasse1) + "," + str(klasse2) + ")")
 
-    bvektor = calc_linear_regression_2D(Punkte[Klasse1],Punkte[Klasse2]) #Nahe 1 für Klasse 1, Nache -1 für Klasse 2
-    K1_test = separateData(Testdata,TestLabels,Klasse1)
-    K2_test = separateData(Testdata,TestLabels,Klasse2)
+    bvektor = calc_linear_regression_2_d(punkte[klasse1], punkte[klasse2])  # Nahe 1 für Klasse 1, Nache -1 für Klasse 2
+    k1_test = separate_data(testdata, test_labels, klasse1)
+    k2_test = separate_data(testdata, test_labels, klasse2)
 
     print("Konfusionsmatrix ")
-    gefunden = np.array([(0, Klasse1, Klasse2),
-                         (Klasse1, 0, 0),
-                         (Klasse2, 0, 0)])
+    gefunden = np.array([(0, klasse1, klasse2),
+                         (klasse1, 0, 0),
+                         (klasse2, 0, 0)])
 
-    for i in K1_test:
-        #print(i)
-        p = klassify_newPoint_regression(np.array([i]),bvektor)
-        gefundenesLabel = 0
+    for i in k1_test:
+        # print(i)
+        p = klassify_new_point_regression(np.array([i]), bvektor)
+        gefundenes_label = 0
         if p > 0:
-            gefundenesLabel = 1 # gehört zu klasse 1
+            gefundenes_label = 1  # gehört zu klasse 1
         else:
-            gefundenesLabel = 2 # gehört zu klasse 2
-        gefunden[1,gefundenesLabel] = gefunden[1, gefundenesLabel] + 1
+            gefundenes_label = 2  # gehört zu klasse 2
+        gefunden[1, gefundenes_label] = gefunden[1, gefundenes_label] + 1
 
-    for i in K2_test:
-        p = klassify_newPoint_regression(np.array([i]),bvektor)
-        gefundenesLabel = 0
+    for i in k2_test:
+        p = klassify_new_point_regression(np.array([i]), bvektor)
+        gefundenes_label = 0
         if p > 0:
-            gefundenesLabel = 1 # gehört zu klasse 1
+            gefundenes_label = 1  # gehört zu klasse 1
         else:
-            gefundenesLabel = 2 # gehört zu klasse 2
-        gefunden[2,gefundenesLabel] = gefunden[2, gefundenesLabel] + 1
+            gefundenes_label = 2  # gehört zu klasse 2
+        gefunden[2, gefundenes_label] = gefunden[2, gefundenes_label] + 1
     print(gefunden)
-    fehler = gefunden[1,2] + gefunden[2,1]
-    richtig =  gefunden[1,1] + gefunden[2,2]
+    fehler = gefunden[1, 2] + gefunden[2, 1]
+    richtig = gefunden[1, 1] + gefunden[2, 2]
     print("Fehler: " + str(fehler))
     print("Richtig: " + str(richtig))
-    print("Fehlerquote: " + str(fehler / richtig * 100) + " %")
+    print("Fehlerquote: " + str((fehler / (richtig + fehler)) * 100) + " %")
+    print("")
 
 
-def calc_linear_regression_2D(dataK1, dataK2):
+def calc_linear_regression_2_d(data_k1, data_k2):
     # Klasse 1 wird mit 1 gelabeld, Klasse 2 mit -1
-    a = np.full((1, len(dataK1)), 1)
-    b = np.full((1, len(dataK2)), -1)
+    a = np.full((1, len(data_k1)), 1)
+    b = np.full((1, len(data_k2)), -1)
     y = np.hstack((a, b))
-    K1 = np.insert(dataK1,0,1,axis = 1)
-    K2 = np.insert(dataK2,0,1,axis = 1)
-    X = np.vstack((K1, K2))
-    b = np.dot(np.dot(np.linalg.inv(np.dot(X.T, X)),X.T),y.T)
+    k1 = np.insert(data_k1, 0, 1, axis=1)
+    k2 = np.insert(data_k2, 0, 1, axis=1)
+    x = np.vstack((k1, k2))
+    b = np.dot(np.dot(np.linalg.inv(np.dot(x.T, x)), x.T), y.T)
     return b.T
 
 
-def klassify_newPoint_regression(datapoint, b):
+def klassify_new_point_regression(datapoint, b):
     # Nahe 1 für Klasse 1, Nache -1 für Klasse 2
-    return sum(np.multiply(b,np.insert(datapoint, 0, 1, axis=1))[0])
+    return sum(np.multiply(b, np.insert(datapoint, 0, 1, axis=1))[0])
 
 
 def dimensionsreduktion(bilder, dimensionen):
@@ -126,7 +129,7 @@ def dimensionsreduktion(bilder, dimensionen):
     [n, d] = bilder.shape
 
     if n > d:
-        c = np.dot(bilder_durch.T,bilder_durch)
+        c = np.dot(bilder_durch.T, bilder_durch)
         v = np.linalg.eigh(c)
         eigenwerte = v[0]  # np.sort(v[0])[::-1]
         eigenvektoren = v[1]
@@ -134,7 +137,7 @@ def dimensionsreduktion(bilder, dimensionen):
         c = np.dot(bilder_durch, bilder_durch.T)
         v = np.linalg.eigh(c)
         eigenwerte = v[0]  # np.sort(v[0])[::-1]
-        eigenvektoren = np.dot(bilder_durch.T,v[1])
+        eigenvektoren = np.dot(bilder_durch.T, v[1])
 
         # normiere eigenvektoren
         for i in range(n):
@@ -146,14 +149,13 @@ def dimensionsreduktion(bilder, dimensionen):
     eigen_vectors_sort = eigenvektoren[:, idx]
 
     # übrige dimensionen entfernen
-    tossed = eigen_vectors_sort[:, :dimensionen]
-
-    return tossed , mu
+    tossed = eigen_vectors_sort[0:dimensionen, :]
+    return tossed.T, mu
 
 
 def aufgabe2():
     x = []
-    h = w = 0
+    # h = w = 0
     max_num_images = 200  # np.inf
     path = "lfwcrop_grey/faces"
 
@@ -163,7 +165,7 @@ def aufgabe2():
         if i >= max_num_images:
             break
 
-    h, w = img.shape
+    # h, w = img.shape
     x = np.array(x)
     # print("image heigth: {}  image width: {}".format(h, w))
     # print(X.shape)
@@ -171,26 +173,39 @@ def aufgabe2():
     num_samples = 90
     indices = np.random.choice(range(len(x)), num_samples)
 
+    # eigenfaces in orginalgröße
+
     sample_faces, q = dimensionsreduktion(x[indices], 4096)
-    sample_faces = sample_faces.T
+    # sample_faces = sample_faces.T
 
     fig = plt.figure(figsize=(20, 6))
+    fig.suptitle("Eigenfaces Dimension 4096, 96x96 Pixel")
     for i in range(num_samples):
-        ax = plt.subplot(6, 15, i + 1)
+        # ax = plt.subplot(6, 15, i + 1)
+        plt.subplot(6, 15, i + 1)
         img = sample_faces[i].reshape((64, 64))
         plt.imshow(img, cmap='gray')
         plt.axis('off')
+
+    # eigenfaces mit dim = 400
+
+    sample_faces_small, q2 = dimensionsreduktion(x[indices], 400)
+    # sample_faces_small = sample_faces_small.T
+
+    fig = plt.figure(figsize=(20, 6))
+    fig.suptitle("Eigenfaces Dimension 400,  20x20 Pixel")
+    for i in range(num_samples):
+        # ax = plt.subplot(6, 15, i + 1)
+        plt.subplot(6, 15, i + 1)
+        img = sample_faces_small[i].reshape((20, 20))
+        plt.imshow(img, cmap='gray')
+        plt.axis('off')
+
     plt.show()
 
 
-def project(vectors, data, mu=None):
-    if mu is None:
-        return np.dot(data, vectors)
-    return np.dot(data - mu, vectors)
-
-
 def main():
-    Aufgabe1()
+    aufgabe1()
     aufgabe2()
 
 
