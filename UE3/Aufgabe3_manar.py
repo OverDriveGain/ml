@@ -1,6 +1,7 @@
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use('WebAgg')
+import matplotlib.cm as cm
 import pandas as pd
 import numpy as np
 from numpy import linalg as LA
@@ -12,7 +13,7 @@ class LinearRegression:
         self.eigenWerts = [np.array([])]* 10
         self.eigenVectors = [np.array([])]* 10
         self.plt = plt
-        self.color = [0.2, 0.2, 0.2]
+        self.colors = cm.rainbow(np.linspace(0, 1, 56))
 
     def train(self, xTrain, yTrain, dim):
         # Klassen ordnen
@@ -51,11 +52,12 @@ class LinearRegression:
         cov1 = np.dot(np.diag(self.eigenWerts[firstIndex]),np.dot(self.eigenVectors[firstIndex],self.eigenWerts[firstIndex][np.newaxis].T))
         cov2 = np.dot(np.diag(self.eigenWerts[secondIndex]),np.dot(self.eigenVectors[secondIndex],self.eigenWerts[secondIndex][np.newaxis].T))
 #        h = figure(‘Color’, [0.2 0.2 0.2])
-        self.plt.plot(cov1[0][0], cov1[1][0], color=self.color,  marker='o')
-        self.plt.plot(cov2[0][0], cov2[1][0], color=self.color,  marker='o')
-        for i in range(0, 3): self.color[i]+=0.1
-        if self.color[i] > 1 : self.color = [0.2,0.2,0.2]
-        print(self.color)
+        color = self.colors[-1]
+        self.colors = self.colors[:-1]
+        self.plt.plot(cov1[0][0], cov1[1][0], color=color,  marker='o')
+        self.plt.plot(cov2[0][0], cov2[1][0], color=color,  marker='o')
+#        for i in range(0, 3): self.color[i] = round( 0.2+ self.color[i], 3)
+#        if self.color[i] >= 1 : self.color = [0.2,0.2,0.2]
 #        self.plt.axis([ min(cov1[0][0], cov2[0][0]) -5, max(cov1[0][0], cov2[0][0])+5, min(cov1[1][0], cov2[1][0])-5, max(cov1[1][0], cov2[1][0])+5])
 
     def showPlot(self):
@@ -68,11 +70,13 @@ def loadFromFile(path):
     return X, y
 
 xTrain, yTrain = loadFromFile("zip.train/zip.train")
-
+x=0
 LR = LinearRegression()
 LR.train(xTrain, yTrain, 2)
 for i in range (0, 10):
     for u in range (i, 10):
         LR.plot2D(i,u)
+        x+=1
+        print(x)
 
 LR.showPlot()
