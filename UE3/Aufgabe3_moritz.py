@@ -4,6 +4,32 @@ import matplotlib.pyplot as plt
 import os, glob
 from matplotlib.image import imread
 
+def pca(X, num_components =0):
+    [n,d] = X.shape
+    if (num_components  <= 0) or (num_components >n):
+        num_components = n
+    mu = X.mean(axis =0)
+    X = X - mu
+    if n>d:
+        C = np.dot(X.T,X)
+        [eigenvalues ,eigenvectors] = np.linalg.eigh(C)
+    else:
+        C = np.dot(X,X.T)
+        [eigenvalues ,eigenvectors] = np.linalg.eigh(C)
+        eigenvectors = np.dot(X.T,eigenvectors)
+        for i in range(n):
+            eigenvectors [:,i] = eigenvectors [:,i]/np.linalg.norm(eigenvectors [:,i])
+        # or  simply  perform  an  economy  size  decomposition
+        # eigenvectors , eigenvalues , variance = np.linalg.svd(X.T, full_matrices=False)
+        # sort  eigenvectors  descending  by  their  eigenvalue
+    idx = np.argsort(-eigenvalues)
+    eigenvalues = eigenvalues[idx]
+    eigenvectors = eigenvectors [:,idx]
+        # select  only  num_components
+    eigenvalues = eigenvalues [0: num_components ].copy()
+    eigenvectors = eigenvectors [:,0: num_components ].copy()
+    return [eigenvalues , eigenvectors , mu]
+
 def faces_Example():
     X = []
     h = w = 0
@@ -67,6 +93,19 @@ def covariance_matrix_loop(X, mu):
     for x in X:
       cov += np.outer(x-mu, x-mu)
     return cov / rows
+
+def covariance_matrix_loop_with_Status(X, mu):
+    rows, cols = X.shape
+    cov = np.zeros((cols, cols))
+    i = 0
+    for x in X:
+        cov += np.outer(x-mu, x-mu)
+        i = i + 1
+        if i % 200 == 0:
+            print("aktueller Standt Matrix " + str(i/rows * 100) +" %")
+    return cov / rows
+
+
 def regularize_covariance_matrix(cov, alpha_min):
     alpha = alpha_min
     cov_reg = np.eye(len(cov)) * alpha + (1 - alpha) * cov
@@ -140,6 +179,7 @@ def reduce_dimensions(data, dim, u, m):
     newdata = np.dot(tossed.T, vreduced.T).T
     return newdata
 
+
 def getEigenface(face,dim, u, m):
     v = face
     vreduced = np.subtract(v, u)
@@ -151,7 +191,7 @@ def getEigenface(face,dim, u, m):
     eigenVectorsSort = eigenvektoren[:, idx]
     tossed = eigenVectorsSort[:, :dim]
     newdata = np.dot(tossed.T, vreduced.T).T
-    return newdata
+    return eigenVectorsSort#newdata
 
 def Aufgabe1():
     X_train, y_train = load_from_file("zip.train/zip.train")
@@ -160,8 +200,17 @@ def Aufgabe1():
     u = calc_u(X_train)
     m = covariance_matrix_loop(X_train, u)
 
-    X_redu = reduce_dimensions(X_train,2,u,m)
-    X_test_redu = reduce_dimensions(X_test,2,u,m)
+    #X_redu = reduce_dimensions(X_train,2,u,m)
+    #X_test_redu = reduce_dimensions(X_test,2,u,m)
+
+    X_redu_v, X_redu_u = faces(X_train, 2)
+    X_test_v, X_test_u = faces(X_test, 2)
+
+
+    X_redu = project(X_redu_v,X_redu_u,X_train)
+    X_test_redu = project(X_test_v,X_test_u,X_test)
+
+    print(X_redu)
 
     points = []
 
@@ -244,23 +293,60 @@ def klassify_newPoint_regression(datapoint, b):
     return (sum(np.multiply(b,np.insert(datapoint,0,1,axis = 1))[0]))
 
 
-def linregTest():
-    v1 = np.array([(1,10),(2,10),(1,9),(2,9)])
+def faces(bilder, dimensionen):
+    # berechne durchschnittsgesicht
+    mu = bilder.mean(axis=0)
+
+    # ziehe durchschnitt ab
+    bilder_durch = bilder - mu
+    #print(bilder_durch)
+
+    [n, d] = bilder.shape
+
+    if n>d:
+        C = np.dot(bilder_durch.T,bilder_durch)
+        v = np.linalg.eigh(C)
+        eigenwerte = v[0]  # np.sort(v[0])[::-1]
+        eigenvektoren = v[1]
+    else:
+        C = np.dot(bilder_durch, bilder_durch.T)
+        v = np.linalg.eigh(C)
+        eigenwerte = v[0]  # np.sort(v[0])[::-1]
+        eigenvektoren = np.dot(bilder_durch.T,v[1])
+
+    # normiere eigenvektoren
+        for i in range(n):
+            eigenvektoren[:, i] = eigenvektoren[:, i] / np.linalg.norm(eigenvektoren[:, i])
+
+    # sortieren
+    idx = eigenwerte.argsort()[::-1]
+    eigenValuesSort = eigenwerte[idx]
+    eigenVectorsSort = eigenvektoren[:, idx]
+
+    # übrige dimensionen entfernen
+    tossed = eigenVectorsSort[:, :dimensionen]
+
+    return tossed , mu
+
+
+def test2():
+    v1 = np.array([(1, 10), (2, 10), (1, 9), (2, 9)])
     v2 = np.array([(6, 2), (6, 1), (7, 2), (7, 1)])
+    v3 = np.array([(1, 10,2, 10,1, 9), (2, 9,6, 2,6, 1)])
+    faces(v3)
 
-    b = calc_linear_regression_2D(v1,v2)
-    p1 = np.array([(1.5, 9.5)])
-    p2 = np.array([(6.5, 1.5)])
+    #b = calc_linear_regression_2D(v1, v2)
+    #p1 = np.array([(1.5, 9.5)])
+    #p2 = np.array([(6.5, 1.5)])
 
-    print(klassify_newPoint_regression(p1,b))# -> sollte nahe 1 sein
-
-    print(klassify_newPoint_regression(p2, b))# -> sollte nahe -1 sein
-
+    #print(klassify_newPoint_regression(p1, b))  # -> sollte nahe 1 sein
+    #print(klassify_newPoint_regression(p2, b))  # -> sollte nahe -1 sein
+   # [D, W, mu] = pca()
 
 def faces_Aufgabe():
     X = []
     h = w = 0
-    max_num_images = np.inf
+    max_num_images = 200#np.inf
     path = "lfwcrop_grey/faces"
 
     for i, filepath in enumerate(glob.glob(os.path.join(path, "*.pgm"))):
@@ -274,31 +360,48 @@ def faces_Aufgabe():
     X = np.array(X)
     print("image heigth: {}  image width: {}".format(h, w))
     print(X.shape)
-    u = calc_u(X)
-    print("u calculated")
-    m = covariance_matrix_loop(X,u)
-    print("covariance calculated")
+    #u = calc_u(X)
+    #print("u calculated")
+    #m = covariance_matrix_loop_with_Status(X,u)
+    #print("covariance calculated")
     #subtract u from each face
 
-    X_redu = X#reduce_dimensions(X[:100], 400)
+    #[D, W, mu] = pca(X)
 
 
 
     num_samples = 90
-    indices = np.random.choice(range(len(X_redu)), num_samples)
-    sample_faces = X_redu[indices]
+    indices = np.random.choice(range(len(X)), num_samples)
+    #sample_faces = faces(X[indices])
 
+    #sample_faces = pca(X[indices], 4096)[1]
+    sample_faces, q = faces(X[indices], 4096)
+    sample_faces = sample_faces.T
+
+    print(sample_faces)
     fig = plt.figure(figsize=(20, 6))
-
     for i in range(num_samples):
         ax = plt.subplot(6, 15, i + 1)
-        if i % 2 == 1:
-            img = getEigenface(sample_faces[i-1].reshape((64, 64)),64,u,m)
-        else:
-            img = sample_faces[i].reshape((64, 64))
+        img = sample_faces[i].reshape((64, 64))
+        plt.imshow(img, cmap='gray')
+        plt.axis('off')
+    '''
+    for i in range(num_samples):
+        ax = plt.subplot(6, 15, i + 1)
+        img = project(W[i],X[i],mu[i]).reshape((64, 64))
         plt.imshow(img, cmap='gray')
         plt.axis('off')
 
+    
+    for i in range(num_samples):
+        ax = plt.subplot(6, 15, i + 1)
+        if i % 2 == 1:
+            img = getEigenface(sample_faces[i-1],64,u,m).reshape((64, 64))
+        else:
+            img = sample_faces[i-1].reshape(64, 64)#reduce_dimensions(sample_faces[i],4096,u,m).reshape((64, 64))
+        plt.imshow(img, cmap='gray')
+        plt.axis('off')
+    '''
     plt.show()
     print("finished")
 
@@ -313,8 +416,11 @@ def recenter(image, min_rows, min_cols):
 
 def main():
     #linregTest()
+    #print("test2")
+    #test2()
     Aufgabe1()
-    #faces_Aufgabe()
+    #test2
+    faces_Aufgabe()
     # Importiere Daten
     #faces_Example()
 
@@ -373,7 +479,29 @@ def aufgabe2maincode():
     print(gefunden)
 
 
+def  project(Vektors, Data, mu=None):
+    if mu is None:
+        return  np.dot(Data,Vektors)
+    return  np.dot(Data - mu, Vektors)
+
+
+
+
+
+
+
+def linregTest():
+    v1 = np.array([(1,10),(2,10),(1,9),(2,9)])
+    v2 = np.array([(6, 2), (6, 1), (7, 2), (7, 1)])
+
+    b = calc_linear_regression_2D(v1,v2)
+    p1 = np.array([(1.5, 9.5)])
+    p2 = np.array([(6.5, 1.5)])
+
+    print(klassify_newPoint_regression(p1,b))# -> sollte nahe 1 sein
+    print(klassify_newPoint_regression(p2, b))# -> sollte nahe -1 sein
 
 
 if __name__ == "__main__":
     main()
+
