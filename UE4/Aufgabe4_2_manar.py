@@ -24,13 +24,15 @@ class LogisticRegression:
     def s(self, x):
         return 1 / (1 + np.exp(-x))
 
-    def initStepTrain(self, X):
+    def __init__(self, X, y):
+        self.X = X
+        self.y = y
         self.beta = np.array( [ 0.0 for i in X[0]] )
 
-    def stepTrain(self, X, y):
-        x = np.dot(X, self.beta)
+    def stepTrain(self):    #One iteration
+        x = np.dot(self.X, self.beta)
         h = self.s(x)
-        gradient = np.dot( X.T, (h - y)) / y.size
+        gradient = np.dot( self.X.T, (h - self.y)) / self.y.size
         self.beta -= 0.01 * gradient        #Learn rate
 
     def predict(self, X):
@@ -39,12 +41,11 @@ class LogisticRegression:
 xTrain, xTest, yTrain, yTest = loadSpamData()
 plotX = []
 plotY = []
-model = LogisticRegression()
-model.initStepTrain(xTrain)
+model = LogisticRegression(xTrain, yTrain)
 result = None
 
 for i in range (0, 1000000):
-    model.stepTrain(xTrain, yTrain)
+    model.stepTrain()
     correct = 0
     result = model.predict(xTest)
     for i2 in range (0, len(result)):
@@ -52,8 +53,6 @@ for i in range (0, 1000000):
             correct +=1
     plotY.append(correct / len(yTest))
     plotX.append(i)
-    if( i % 10000 == 0):
-        print("i has reached:" + str(i) )
 
 
 def confMatrix(results, testValues):
