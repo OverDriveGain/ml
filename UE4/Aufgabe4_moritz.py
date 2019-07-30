@@ -77,8 +77,48 @@ def aufgabe1(X_train, X_test, y_train, y_test):
     # e = np.dot( u, 0.5*(np.add(spam_mean,no_spam_mean)))
     # print(e)
 
+def normalise(x):
+    v = x
+    z = []
+    for i in range(len(v)):
+
+        z.append((v[i] / np.linalg.norm(v[i])))
+    return np.array(z)
+
 def aufgabe2(X_train, X_test, y_train, y_test):
     print("Aufgabe 2")
+
+    # normalisieren
+    x_train_norm = normalise(X_train)
+    x_test_norm = normalise(X_test)
+    y_train_norm = normalise(y_train)
+    y_test_norm = normalise(y_test)
+
+    # 1 einfügen
+    x_train_n_one = np.insert(x_train_norm, 0, 1, axis=1)
+    x_test_n_one = np.insert(x_test_norm, 0, 1, axis=1)
+
+    
+    print()
+
+
+
+def p_a(x,beta):
+    return np.exp(np.dot(x.T,beta)) / (1 + np.exp(np.dot(x.T,beta)))
+
+def p_b(x, beta):
+    return 1 - p_a(x,beta)
+
+
+
+
+
+
+
+
+
+
+
 
 def regularize_covariance_matrix(cov, alpha_min):
     alpha = alpha_min
@@ -204,8 +244,63 @@ def main():
     X_train, X_test, y_train, y_test = load_spam_data()
     #fisherTest()
 
-    aufgabe1(X_train, X_test, y_train, y_test)
-    #aufgabe2(X_train, X_test, y_train, y_test)
+    #aufgabe1(X_train, X_test, y_train, y_test)
+    aufgabe2(X_train, X_test, y_train, y_test)
+
+
+
+
+#
+# def add_intercept(X):
+#     intercept = np.ones((X.shape[0], 1))
+#     return np.concatenate((intercept, X), axis=1)
+#
+# def sigmoid(z):
+#     return 1 / (1 + np.exp(-z))
+#
+# def loss(h, y):
+#     return (-y * np.log(h) - (1 - y) * np.log(1 - h)).mean()
+#
+#
+# def beispiel_log(X, y):
+#     lr=0.01
+#     num_iter=100000
+#     fit_intercept=True
+#     verbose=False
+#
+#
+#
+#     if fit_intercept:
+#         X = add_intercept(X)
+#
+#     # weights initialization
+#     theta = np.zeros(X.shape[1])
+#
+#     for i in range(num_iter):
+#         z = np.dot(X, theta)
+#         h = sigmoid(z)
+#         gradient = np.dot(X.T, (h - y)) / y.size
+#         theta -= lr * gradient
+#
+#         if (verbose == True and i % 10000 == 0):
+#             z = np.dot(X, theta)
+#             h = sigmoid(z)
+#             print(f'loss: {loss(h, y)} \t')
+#
+#
+# def predict_prob(X, theta, fit_intercept):
+#     if fit_intercept:
+#         X = add_intercept(X)
+#
+#     return sigmoid(np.dot(X, theta)) ,fit_intercept
+#
+#
+# def predict(X, threshold, theta, fit_intercept):
+#     a, b = predict_prob(X, theta, fit_intercept)
+#     return  a >= threshold , b
+#
+
+
 
 
 if __name__ == "__main__":
