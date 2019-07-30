@@ -73,7 +73,7 @@ def confMatrix(results, testValues):
                 fn +=1
     print("0 \t 1")
     print("0 \t "+ str(tn) + "\t" + str(fn)  )
-    print("1 \t "+ str(tp) + "\t" + str(fp)  )
+    print("1 \t "+ str(fp) + "\t" + str(tp)  )
 
 
 confMatrix(result, yTest)
