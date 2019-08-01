@@ -22,16 +22,17 @@ class NNode:
         self.input_size = input_size
         self.output_size = output_size
 
-        self.w = np.ones((self.input_size, self.output_size))*0.001
-        self.delta = np.ones((self.input_size, self.output_size))#*0.001
+        w = np.ones((self.input_size, self.output_size))*0.001
+        self.delta = np.ones((self.input_size, self.output_size))*0.001
 
         self.output = np.zeros((self.output_size)).T
         self.input = np.zeros((self.input_size))
         self.d = np.zeros((self.output.shape[0], self.output.shape[0]))
 
         self.odach = self._getOdach(self.input)
-        self.wdach = self._getWDach(self.w.T)
+        self.wdach = self._getWDach(w.T)
 
+        self.deltaWdach = np.zeros((self.input_size+1, self.output_size))
 
     def _getWDach(self, w):
         x = w.shape
@@ -56,10 +57,6 @@ class NNode:
         y = np.dot(self.odach,self.wdach.T)
         self.output = self.sigmoid(y)
 
-    def back(self):
-
-        print("back")
-
     def calcD(self):#, o2, o1):
         o2 = self.output #self.nodes[i].output
         o1 = self.input#self.nodes[i - 1].output
@@ -71,8 +68,10 @@ class NNode:
             self.d[j, j] = oi2 * (1 - oi2)
 
 
-    def updateW(self, wdelta):
-        self.w += wdelta
+    def updateW(self):
+
+        self.wdach = np.add(self.wdach, self.deltaWdach)
+        self.deltaWdach = np.zeros((self.input_size+1, self.output_size))
 
     def sigmoid(self, x):
         return 1 / (1 + np.exp(-x))
@@ -106,12 +105,12 @@ class NeuralNet:
 
     def predict(self, x):
         self.calcForward(x)
-        return self.nodes[len(self.nodes) - 1].output
+        return np.around(1 - (self.nodes[len(self.nodes) - 1].output))
 
     def fit(self):
         for i in range(len(self.data)):
             self.calcForward(self.data[i])
-            self.backpropagation(self.y[i],self.data[i])
+            self.backpropagation(self.y[i])
 
     def calcForward(self, input):
         for i in range(len(self.nodes)):
@@ -123,21 +122,21 @@ class NeuralNet:
                 self.nodes[i].calculate(self.nodes[i-1].output)
 
 
-    def backpropagation(self, y, input):
+    def backpropagation(self, y):
         #print(y)
         deltas = []
         l = len(self.nodes)
         for i in range(l-1,-1,-1):
             currNode = self.nodes[i]
-            print(currNode.wdach)
-            print()
+            #print(currNode.wdach)
+            #print()
 
-            currNode.calcD
+            currNode.calcD()
             t = np.zeros(currNode.output.shape[0])
-            t[y] = 1
+            t[int(y)] = 1
             e = np.zeros(currNode.output.shape[0])
             for k in range(len(currNode.output)):
-                e[k] = currNode.output[k]*currNode.output[k]*t[k]
+                e[k] = currNode.output[k]*currNode.output[k]-t[k]
 
            # print(e)
 
@@ -145,14 +144,23 @@ class NeuralNet:
                #deltas.append(np.dot(currNode.d,e))
                currNode.delta = np.dot(currNode.d, e)
             elif i >= 0:# cas == l
-                nextNode = self.nodes[i + 1]
-                currNode.delta = np.dot(np.dot(currNode.d,nextNode.getW),nextNode.delta)
+                #nextNode = self.nodes[i + 1]
+                currNode.delta = np.dot(currNode.d, e)
 
 
             # calculate delta to add
-            delta = 0
+            dwdach = np.dot(np.array(([currNode.delta])).T , np.array(([currNode.odach])))
+            #print(dwdach)
 
+            currNode.deltaWdach = dwdach
 
+           #print(currNode.deltaWdach)
+        # nachdem alle deltas berechnet, deltas anwenden
+        #print(self.nodes[2].getW())
+        for i in self.nodes:
+            i.updateW()
+
+        #print(self.nodes[2].getW())
             # else:
             #     onplus1 = self.nodes[i]
             #     dw = np.zeros((onplus1.output.shape[0], onplus1.output.shape[0]))
@@ -168,21 +176,64 @@ class NeuralNet:
     #     d_weights1 = np.dot(self.input.T, (np.dot(2 * (self.y - onplus1) * sigmoid_deriv(onplus1), self.weights2.T) * sigmoid_deriv(on)))
 
 
+def returnNumber(x):
+    for i in range(len(x)):
+        if x[i] == 1:
+            return i
+    return -1
+
+
+def teste(model, x_test, y_test):
+    gefunden = np.array([(0,0,1,2,3,4,5,6,7,8,9),
+                         (0,0,0,0,0,0,0,0,0,0,0),
+                         (1,0,0,0,0,0,0,0,0,0,0),
+                         (2,0,0,0,0,0,0,0,0,0,0),
+                         (3,0,0,0,0,0,0,0,0,0,0),
+                         (4,0,0,0,0,0,0,0,0,0,0),
+                         (5,0,0,0,0,0,0,0,0,0,0),
+                         (6,0,0,0,0,0,0,0,0,0,0),
+                         (7,0,0,0,0,0,0,0,0,0,0),
+                         (8,0,0,0,0,0,0,0,0,0,0),
+                         (9,0,0,0,0,0,0,0,0,0,0)])
+    for i in range(len(x_test)):
+        predicted = returnNumber(model.predict(x_test[i]))
+        currLabel = int(y_test[i])
+        gefunden[1 + predicted, 1 + currLabel] = gefunden[1 + predicted, 1 + currLabel] + 1
+
+    return gefunden
 
 
 def tests():
-    v = np.array([(0, 0, 1, 0, 1, 4, 5, 0, 1, 4, 5),
-                (0, 0, 0, 0, 1, 4, 5, 0, 1, 4, 5),
-                (1, 0, 0, 0, 1, 4, 5, 0, 1, 4, 5)])
 
-    v2 = np.array([(0, 0, 1, 4, 5, 0, 1, 4, 5),
-                  (0, 0, 0, 5 ,6, 0, 1, 4, 5),
-                  (1, 0, 0, 6, 7, 0, 1, 4, 5)])
+    x_train, y_train = load_from_file("../UE3/zip.train/zip.train")
+    x_test, y_test = load_from_file("../UE3/zip.test/zip.test")
 
-    model = NeuralNet(v,np.array((1,1,0)),[8,7,5,2])
+    model = NeuralNet(x_train, y_train, [100, 50, 10])
 
-    model.fit()
 
+   # testv = x_test[0]
+   # print("test sollte sein: " + str(y_test[0]))
+
+    for i in range(100):
+        model.fit()
+        
+
+        #print(teste(model,x_test,y_test))
+        #print()
+
+    # v = np.array([(0, 0, 1, 0, 1, 4, 5, 0, 1, 4, 5),
+    #             (0, 0, 0, 0, 1, 4, 5, 0, 1, 4, 5),
+    #             (1, 0, 0, 0, 1, 4, 5, 0, 1, 4, 5)])
+    #
+    # v2 = np.array([(0, 0, 1, 4, 5, 0, 1, 4, 5),
+    #               (0, 0, 0, 5 ,6, 0, 1, 4, 5),
+    #               (1, 0, 0, 6, 7, 0, 1, 4, 5)])
+    #
+    # model = NeuralNet(v,np.array((1,1,0)),[8,7,5,2])
+    #
+    # for i in range(100):
+    #     model.fit()
+    #     print(model.predict(np.array((1, 0, 1, 0, 1, 4, 0, 0, 1, 0, 1))))
     #model.calcForward(v[0])
     #model.backpropagation()
 
