@@ -199,20 +199,31 @@ def teste(model, x_test, y_test):
                          (7,0,0,0,0,0,0,0,0,0,0),
                          (8,0,0,0,0,0,0,0,0,0,0),
                          (9,0,0,0,0,0,0,0,0,0,0)])
+
+    richtig = 0
+    falsch = 0
     for i in range(len(x_test)):
         predicted = model.predict(x_test[i])
         currLabel = int(y_test[i])
         gefunden[1 + predicted, 1 + currLabel] = gefunden[1 + predicted, 1 + currLabel] + 1
+        if predicted == currLabel:
+            richtig += 1
+        else:
+            falsch += 1
+    return gefunden , richtig, falsch
 
-    return gefunden
-
+def printKonfu(model, x_test, y_test):
+    a, richtig, falsch = teste(model, x_test, y_test)
+    print(a)
+    print("Fehlerquote: " + str(falsch / (richtig + falsch) * 100) + " %")
+    print()
 
 def tests():
 
     x_train, y_train = load_from_file("../UE3/zip.train/zip.train")
     x_test, y_test = load_from_file("../UE3/zip.test/zip.test")
 
-    model = NeuralNet(x_train, y_train, [10])
+    model = NeuralNet(x_train, y_train, [50,10])
 
 
   #  testv = x_test[0]
@@ -220,8 +231,10 @@ def tests():
 
     for i in range(5000):
         model.fit()
-        print(teste(model,x_test,y_test))
-        print()
+        if i % 50 == 0:
+            printKonfu(model, x_test, y_test)
+
+
 
     # v = np.array([(0, 0, 1, 0, 1, 4, 5, 0, 1, 4, 5),
     #             (0, 0, 0, 0, 1, 4, 5, 0, 1, 4, 5),
@@ -336,11 +349,33 @@ def stepForward(o,w):
 def aufgabe1():
     x_train, y_train = load_from_file("../UE3/zip.train/zip.train")
     x_test, y_test = load_from_file("../UE3/zip.test/zip.test")
+    neuronen = [80,10]
+    epochen = 15
+    model = NeuralNet(x_train, y_train, neuronen)
 
+
+
+    iter = []
+    genau = []
+
+    for i in range(10):
+        model.fit()
+        a, richtig, falsch = teste(model, x_test, y_test)
+        iter.append(i)
+        genau.append(1 - (falsch / (richtig + falsch)))
+        if i % 1 == 0:
+            print("Konfusionsmatrix bei Epoche =" + str(i))
+            printKonfu(model, x_test, y_test)
+
+    fig, axs = plt.subplots(1, 1, figsize=(10, 10))
+
+    axs.plot(iter, genau, c="blue")
+    axs.set_title("Mit Neuronen " + str(neuronen))
+    plt.show()
 
 def main():
-    tests()
-    #aufgabe1()
+    #tests()
+    aufgabe1()
 
 if __name__ == "__main__":
     main()
