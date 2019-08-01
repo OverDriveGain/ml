@@ -71,7 +71,7 @@ class NNode:
 
     def updateW(self):
 
-        self.wdach = np.add(self.wdach, self.deltaWdach)
+        self.wdach = np.subtract(self.wdach, self.deltaWdach)
         self.deltaWdach = np.zeros((self.input_size+1, self.output_size))
 
     def sigmoid(self, x):
@@ -106,8 +106,14 @@ class NeuralNet:
 
     def predict(self, x):
         self.calcForward(x)
-        print(self.nodes[len(self.nodes)-1].output)
-        return np.around(1 - (self.nodes[len(self.nodes) - 1].output))
+       # print(np.around((self.nodes[len(self.nodes) - 1].output)))
+        pred = np.around((self.nodes[len(self.nodes) - 1].output))
+
+        for i in range(len(pred)):
+           # print(pred[i])
+            if pred[i] == 1:
+                return i
+        return -1
 
     def fit(self):
         for i in range(len(self.data)):
@@ -178,11 +184,7 @@ class NeuralNet:
     #     d_weights1 = np.dot(self.input.T, (np.dot(2 * (self.y - onplus1) * sigmoid_deriv(onplus1), self.weights2.T) * sigmoid_deriv(on)))
 
 
-def returnNumber(x):
-    for i in range(len(x)):
-        if x[i] == 1:
-            return i
-    return -1
+
 
 
 def teste(model, x_test, y_test):
@@ -198,7 +200,7 @@ def teste(model, x_test, y_test):
                          (8,0,0,0,0,0,0,0,0,0,0),
                          (9,0,0,0,0,0,0,0,0,0,0)])
     for i in range(len(x_test)):
-        predicted = returnNumber(model.predict(x_test[i]))
+        predicted = model.predict(x_test[i])
         currLabel = int(y_test[i])
         gefunden[1 + predicted, 1 + currLabel] = gefunden[1 + predicted, 1 + currLabel] + 1
 
@@ -213,16 +215,13 @@ def tests():
     model = NeuralNet(x_train, y_train, [10])
 
 
-    testv = x_test[0]
-    print("test sollte sein: " + str(y_test[0]))
+  #  testv = x_test[0]
+   # print("test sollte sein: " + str(y_test[0]))
 
     for i in range(5000):
         model.fit()
-        if i % 1000 == 0:
-            predicted = returnNumber(model.predict(testv))
-            print(predicted)
-      #  print(teste(model,x_test,y_test))
-       # print()
+        print(teste(model,x_test,y_test))
+        print()
 
     # v = np.array([(0, 0, 1, 0, 1, 4, 5, 0, 1, 4, 5),
     #             (0, 0, 0, 0, 1, 4, 5, 0, 1, 4, 5),
