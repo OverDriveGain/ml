@@ -23,7 +23,7 @@ class NNode:
         self.output_size = output_size
 
         w = np.ones((self.input_size, self.output_size))*0.001
-        self.delta = np.ones((self.input_size, self.output_size))*0.001
+        self.delta = np.zeros((self.input_size, self.output_size))
 
         self.output = np.zeros((self.output_size)).T
         self.input = np.zeros((self.input_size))
@@ -65,7 +65,8 @@ class NNode:
         self.d = np.zeros((o2.shape[0], o2.shape[0]))
         for j in range(len(o2)):
             oi2 = o2[j]
-            self.d[j, j] = oi2 * (1 - oi2)
+            #self.d[j, j] = oi2 * (1 - oi2)
+            self.d[j, j] = sigmoid_deriv(oi2) * (1 - sigmoid_deriv(oi2))
 
 
     def updateW(self):
@@ -105,6 +106,7 @@ class NeuralNet:
 
     def predict(self, x):
         self.calcForward(x)
+        print(self.nodes[len(self.nodes)-1].output)
         return np.around(1 - (self.nodes[len(self.nodes) - 1].output))
 
     def fit(self):
@@ -123,7 +125,7 @@ class NeuralNet:
 
 
     def backpropagation(self, y):
-        #print(y)
+        #print(int(y))
         deltas = []
         l = len(self.nodes)
         for i in range(l-1,-1,-1):
@@ -208,18 +210,19 @@ def tests():
     x_train, y_train = load_from_file("../UE3/zip.train/zip.train")
     x_test, y_test = load_from_file("../UE3/zip.test/zip.test")
 
-    model = NeuralNet(x_train, y_train, [100, 50, 10])
+    model = NeuralNet(x_train, y_train, [10])
 
 
-   # testv = x_test[0]
-   # print("test sollte sein: " + str(y_test[0]))
+    testv = x_test[0]
+    print("test sollte sein: " + str(y_test[0]))
 
-    for i in range(100):
+    for i in range(5000):
         model.fit()
-        
-
-        #print(teste(model,x_test,y_test))
-        #print()
+        if i % 1000 == 0:
+            predicted = returnNumber(model.predict(testv))
+            print(predicted)
+      #  print(teste(model,x_test,y_test))
+       # print()
 
     # v = np.array([(0, 0, 1, 0, 1, 4, 5, 0, 1, 4, 5),
     #             (0, 0, 0, 0, 1, 4, 5, 0, 1, 4, 5),
