@@ -4,10 +4,18 @@ from sklearn.model_selection import train_test_split
 
 
 def load_from_file(path):
+    #importfunktion für daten. Übernommen aus Tutoriumsvorlage
     df = pd.read_csv(path, header=None, sep=",")
-    X = df.iloc[:, 0:6].values
+    X = df.iloc[:, 0:4].values
+    X = df.iloc[:, 0:6].values # there is an empty string at position 257, because every line ends with a space (== separator)
     y = df.iloc[:, 6:7].values
+
+    #for i in X:
+
+
+
     return X, y.T[0]
+
 
 class ID3Tree:
 
@@ -23,8 +31,12 @@ class ID3Tree:
         self.gesamtEntro = self.entropy(self.pos, self.n - self.pos)
         self.blaetter = []
 
+
+
         if self.gesamtEntro > 0:
             self.splittedAttribute, self.entropies = self.chooseAttribute(self.data,self.labels)
+            #print("Knoten mit Attribute " + str(self.splittedAttribute))
+
             for i in self.entropies:
                 newdata, newlabel = self.dataSplit(i[0])
                 knoten = ID3Tree(newdata, newlabel, i[0], self.tiefe + 1)
@@ -113,6 +125,8 @@ class ID3Tree:
         maxi = np.max(gains)
         for i in range(len(gains)):
             if gains[i] == maxi:
+                #print(Entropies)
+                #print(gains)
                 return i, Entropies[i]
 
     def dataSplit(self, Select):
@@ -125,11 +139,17 @@ class ID3Tree:
                 newLabel.append(self.labels[i])
         return np.array(newData), newLabel
 
+
+
 def aufgabe1():
     print("Aufgabe 1")
     x, y = load_from_file("car.data")
     X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=30, stratify=y)
     Baum = ID3Tree(X_train, y)
+
+    # gefunden = np.array([(0, 0, 1),
+    #                      (0, 0, 0),
+    #                      (1, 0, 0)])
 
     richtig = 0
     falsch = 0
@@ -144,6 +164,8 @@ def aufgabe1():
     print("Richtig: " + str(richtig))
     print("Falsch: " + str(falsch))
     print("Fehlerquote: " + str(falsch / (richtig + falsch) * 100) + " %")
+
+
 
 def kcrossvali(data, y, k):
     n = len(data)
@@ -170,6 +192,7 @@ def kcrossvali(data, y, k):
         trainy.pop(i)
         train = [val for sublist in train for val in sublist]
         trainy = [val for sublist in trainy for val in sublist]
+        #Baum = ID3Tree(train, trainy)
         Baum = ID3Tree(np.array(train)[0], trainy)
 
         richtig = 0
@@ -181,19 +204,29 @@ def kcrossvali(data, y, k):
             else:
                 falsch += 1
 
+        #print("Richtig: " + str(richtig))
+        #print("Falsch: " + str(falsch))
         fehlersum.append(falsch / (richtig + falsch))
+        #print("Fehlerquote: " + str(falsch / (richtig + falsch) * 100) + " %")
     print("Durchschnittsfehler bei " +str(k) + " cross Validation: " + str(sum(fehlersum)/k * 100) +" %")
 
+
+
 def aufgabe2():
+
     x, y = load_from_file("car.data")
     print("Teil A")
     kcrossvali(x,y,10)
     print("Teil B")
     kcrossvali(x, y, len(x))
 
+
+
+
 def main():
     aufgabe1()
     aufgabe2()
+
 
 if __name__ == "__main__":
     main()
